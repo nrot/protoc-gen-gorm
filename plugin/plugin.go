@@ -56,6 +56,11 @@ var (
 	bigintImport       = "math/big"
 )
 
+var uuidLibs = map[string]string{
+	"gofrs":  "github.com/gofrs/uuid",
+	"satori": "github.com/satori/go.uuid",
+}
+
 var builtinTypes = map[string]struct{}{
 	"bool":    {},
 	"int":     {},
@@ -139,6 +144,16 @@ func New(opts protogen.Options, request *pluginpb.CodeGeneratorRequest) (*ORMBui
 
 	if strings.EqualFold(params["enums"], "string") {
 		builder.stringEnums = true
+	}
+
+	uuidType, e := params["uuid"]
+	if e {
+		uuidPath, e := uuidLibs[uuidType]
+		if e {
+			uuidImport = uuidPath
+		} else {
+			return nil, errors.New(fmt.Sprintf("Can`t find uuid lib: %s; Knows: %v", uuidType, uuidLibs))
+		}
 	}
 
 	if _, ok := params["gateway"]; ok {
